@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour {
     public GameState gameState;
     public float startingTime;
     private Controls gameControls;
-    private GameObject seeSaw1GO, seeSaw2GO;
+    public GameObject seeSaw1GO, seeSaw2GO;
     private SeeSaw seeSaw1, seeSaw2;
     void Awake()
     {
@@ -30,8 +30,8 @@ public class GameManager : MonoBehaviour {
     {
         Debug.Log("Initialise game");
         // spawn in players
-        seeSaw1GO = Instantiate(Resources.Load("SeeSaw"), new Vector3(0,0,0),Quaternion.identity ) as GameObject;
-        seeSaw2GO = Instantiate(Resources.Load("SeeSaw"), new Vector3(0, 0, 10), Quaternion.identity) as GameObject;
+       // seeSaw1GO = Instantiate(Resources.Load("SeeSaw"), new Vector3(0,0,0),Quaternion.identity ) as GameObject;
+       // seeSaw2GO = Instantiate(Resources.Load("SeeSaw"), new Vector3(0, 0, 10), Quaternion.identity) as GameObject;
         seeSaw1 = seeSaw1GO.GetComponent<SeeSaw>();
         seeSaw2 = seeSaw2GO.GetComponent<SeeSaw>();
         seeSaw1.WhichPlayer = SeeSaw.Player.P1;

@@ -21,6 +21,32 @@ public class SeeSaw : MonoBehaviour {
     private enum ActiveSide { left, right }
     private ActiveSide sideActive;
     private bool allowInput = true;
+    public GameObject bubble, playerLeftsprite, playerRightSprite, plunger;
+    private Animator bubAnim, plAnim, prAnim, plungeAnim;
+    private int bubbleState = 0;
+
+
+    void Start()
+    {
+        bubAnim = bubble.GetComponent<Animator>();
+        plAnim = playerLeftsprite.GetComponent<Animator>();
+        prAnim = playerRightSprite.GetComponent<Animator>();
+        plungeAnim = plunger.GetComponent<Animator>();
+        switch (WhichPlayer)
+        {
+            case Player.P1:
+                Debug.Log("player1Set");
+                playerLeft = "p1Left";
+                playerRight = "p1Right";
+                break;
+            case Player.P2:
+                Debug.Log("player2Set");
+                playerLeft = "p2Left";
+                playerRight = "p2Right";
+                break;
+        }
+
+    }
 
     // current time between switches
     
@@ -39,12 +65,18 @@ public class SeeSaw : MonoBehaviour {
         {
             case ActiveSide.left:
                 sideActive=ActiveSide.right;
-                whichButton.text = "R";
+                plAnim.SetTrigger("Normal");
+                prAnim.SetTrigger("Shout");
+                Debug.Log("RIGHT");
+               // whichButton.text = "R";
                 allowInput = true;
                 break;
             case ActiveSide.right:
                 sideActive= ActiveSide.left;
-                whichButton.text = "L";
+                plAnim.SetTrigger("Shout");
+                prAnim.SetTrigger("Normal");
+                Debug.Log("LEFT");
+               // whichButton.text = "L";
                 allowInput = true;
                 break;
         }
@@ -53,24 +85,12 @@ public class SeeSaw : MonoBehaviour {
 
     }
 
+
     /// <summary>
     /// Sent from GameManager to start the game
     /// </summary>
     public void StartRocking()
     {
-        switch (WhichPlayer)
-        {
-            case Player.P1:
-                Debug.Log("player1Set");
-                playerLeft = "p1Left";
-                playerRight = "p1Right";
-                break;
-            case Player.P2:
-                Debug.Log("player2Set");
-                playerLeft = "p2Left";
-                playerRight = "p2Right";
-                break;
-        }
         StartCoroutine("SwitchTimer");
     }
 
@@ -95,11 +115,14 @@ public class SeeSaw : MonoBehaviour {
                     Debug.Log("UserPressed LEFT");
                     allowInput = false;
                     score++;
-                    scoreText.text = score.ToString();
+                    bubAnim.SetInteger("BubbleSize",score);
+                    plungeAnim.SetTrigger("Plunge");
+                    //scoreText.text = score.ToString();
                     Timer *= 0.9f;
                     break;
                 case ActiveSide.right:
                     Debug.Log("UserPressed LEFT");
+                    prAnim.SetTrigger("Sad");
                     allowInput = false;
                     Timer *= 1.1f;
                     break;
@@ -113,13 +136,16 @@ public class SeeSaw : MonoBehaviour {
                 case ActiveSide.left:
                     Timer *= 1.1f;
                     Debug.Log("UserPressed RIGHT");
+                    plAnim.SetTrigger("Sad");
                     allowInput = false;
                     break;
                 case ActiveSide.right:
                     Debug.Log("UserPressed RIGHT");
                     allowInput = false;
                     score++;
-                    scoreText.text = score.ToString();
+                    plungeAnim.SetTrigger("Plunge");
+                    bubAnim.SetInteger("BubbleSize", score);
+                    //scoreText.text = score.ToString();
                     Timer *= 0.9f;
                     break;
             }
