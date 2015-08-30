@@ -136,6 +136,7 @@ public class SeeSaw : MonoBehaviour {
                 case ActiveSide.left:
                     Timer *= 1.1f;
                     Debug.Log("UserPressed RIGHT");
+                    score--;
                     plAnim.SetTrigger("Sad");
                     allowInput = false;
                     break;
