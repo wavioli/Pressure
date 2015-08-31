@@ -24,11 +24,14 @@ public class SeeSaw : MonoBehaviour {
     public GameObject bubble, playerLeftsprite, playerRightSprite, plunger;
     private Animator bubAnim, plAnim, prAnim, plungeAnim;
     private int bubbleState = 0;
-    private string plAudioShoutEvent, prAudioShoutEvent, plMissAudioEvent, prMissAudioEvent;
+    public AudioClip plAudioShoutEvent, prAudioShoutEvent, MissAudioEvent, winSound;
+    AudioSource audio;
+    public bool showTimer;
+    
 
     void Start()
     {
-        Fabric.EventManager.Instance.PostEvent("p1LShout");
+        audio = gameObject.GetComponent<AudioSource>();
         bubAnim = bubble.GetComponent<Animator>();
         plAnim = playerLeftsprite.GetComponent<Animator>();
         prAnim = playerRightSprite.GetComponent<Animator>();
@@ -36,22 +39,20 @@ public class SeeSaw : MonoBehaviour {
         switch (WhichPlayer)
         {
             case Player.P1:
-                Debug.Log("player1Set");
                 playerLeft = "p1Left";
                 playerRight = "p1Right";
-                plAudioShoutEvent = "p1LShout";
-                prAudioShoutEvent = "p1RShout";
-                plMissAudioEvent = "p1LMiss";
-                prMissAudioEvent = "p1RMiss";
+                //plAudioShoutEvent = "p1LShout";
+                //prAudioShoutEvent = "p1RShout";
+                //plMissAudioEvent = "p1LMiss";
+                //prMissAudioEvent = "p1RMiss";
                 break;
             case Player.P2:
-                Debug.Log("player2Set");
                 playerLeft = "p2Left";
                 playerRight = "p2Right";
-                plAudioShoutEvent = "p2LShout";
-                prAudioShoutEvent = "p2RShout";
-                plMissAudioEvent = "p2LMiss";
-                prMissAudioEvent = "p2RMiss";
+                //plAudioShoutEvent = "p2LShout";
+                //prAudioShoutEvent = "p2RShout";
+                //plMissAudioEvent = "p2LMiss";
+                //prMissAudioEvent = "p2RMiss";
                 break;
         }
 
@@ -68,34 +69,36 @@ public class SeeSaw : MonoBehaviour {
     /// <returns></returns>
     IEnumerator SwitchTimer()
     {
-        //Debug.Log("timer"+Timer);
-        yield return new WaitForSeconds(Timer);
-        switch (sideActive)
+        if (GameManager.instance.gameState == GameManager.GameState.InGame)
         {
-            case ActiveSide.left:
-                sideActive=ActiveSide.right;
-                plAnim.SetTrigger("Normal");
-                prAnim.SetTrigger("Shout");
-                Fabric.EventManager.Instance.PostEvent(plAudioShoutEvent, Fabric.EventAction.PlaySound, null, gameObject);
-                Debug.Log("audioEvent: " + plAudioShoutEvent);
-               // Debug.Log("RIGHT");
-               // whichButton.text = "R";
-                allowInput = true;
-                break;
-            case ActiveSide.right:
-                sideActive= ActiveSide.left;
-                plAnim.SetTrigger("Shout");
-                prAnim.SetTrigger("Normal");
-                Fabric.EventManager.Instance.PostEvent(prAudioShoutEvent, Fabric.EventAction.PlaySound, null, gameObject);
-                Debug.Log("audioEvent: " + prAudioShoutEvent);
-               // Debug.Log("LEFT");
-               // whichButton.text = "L";
-                allowInput = true;
-                break;
-        }
-        UnityEngine.Debug.Log("activeside: "+sideActive);
-        StartCoroutine("SwitchTimer");
+            //Debug.Log("timer"+Timer);
+            yield return new WaitForSeconds(Timer);
+            switch (sideActive)
+            {
+                case ActiveSide.left:
+                    sideActive = ActiveSide.right;
+                    plAnim.SetTrigger("Normal");
+                    prAnim.SetTrigger("Shout");
+                    audio.PlayOneShot(plAudioShoutEvent);
+                    // Debug.Log("audioEvent: " + plAudioShoutEvent);
+                    // Debug.Log("RIGHT");
+                    // whichButton.text = "R";
+                    allowInput = true;
+                    break;
+                case ActiveSide.right:
+                    sideActive = ActiveSide.left;
+                    plAnim.SetTrigger("Shout");
+                    prAnim.SetTrigger("Normal");
+                    audio.PlayOneShot(prAudioShoutEvent);
+                    //Debug.Log("audioEvent: " + prAudioShoutEvent);
+                    // Debug.Log("LEFT");
+                    // whichButton.text = "L";
+                    allowInput = true;
+                    break;
+            }
 
+            StartCoroutine("SwitchTimer");
+        }
     }
 
 
@@ -117,58 +120,111 @@ public class SeeSaw : MonoBehaviour {
 
     void Update()
     {
-        Debug.Log(playerLeft + "playerLeft");
-        Debug.Log(playerRight + "playerright");
-        if (Input.GetButtonDown(playerLeft))
-        { // user pressed left
-            
-            switch (sideActive)
-            {
-                case ActiveSide.left:
-                    
-                    allowInput = false;
-                    score++;
-                    bubAnim.SetInteger("BubbleSize",score); 
-                    plungeAnim.SetTrigger("Plunge");
-                    //scoreText.text = score.ToString();
-                    Timer *= 0.9f;
-                    break;
-                case ActiveSide.right:
-                   
-                    prAnim.SetTrigger("Sad");
-                    Fabric.EventManager.Instance.PostEvent(prMissAudioEvent, Fabric.EventAction.PlaySound, null, gameObject);
-                    //Fabric.EventManager.Instance.
-                    Debug.Log("audioEvent: "+prMissAudioEvent);
-                    allowInput = false;
-                    Timer *= 1.1f;
-                    break;
-            }
-        }
-        else if (Input.GetButtonDown(playerRight))
+        if (GameManager.instance.gameState == GameManager.GameState.InGame)
         {
-            
-            switch (sideActive)
-            {
-                case ActiveSide.left:
-                    Timer *= 1.1f;
-                    //Debug.Log("UserPressed RIGHT");
-                    score--;
-                    plAnim.SetTrigger("Sad");
-                    Fabric.EventManager.Instance.PostEvent(plMissAudioEvent, Fabric.EventAction.PlaySound, null, gameObject);
-                    allowInput = false;
-                    break;
-                case ActiveSide.right:
-                    //Debug.Log("UserPressed RIGHT");
-                    allowInput = false;
-                    score++;
-                    plungeAnim.SetTrigger("Plunge");
-                    bubAnim.SetInteger("BubbleSize", score);
-                    //scoreText.text = score.ToString();
-                    Timer *= 0.9f;
-                    break;
+            if (showTimer)
+                Debug.Log("Timer: " + Timer);
+            if (Input.GetButtonDown(playerLeft))
+            { // user pressed left
+
+                switch (sideActive)
+                {
+                    case ActiveSide.left:
+
+                        allowInput = false;
+                        score++;
+                        bubAnim.SetInteger("BubbleSize", score);
+                        plungeAnim.SetTrigger("Plunge");
+                       
+                        //scoreText.text = score.ToString();
+                        if (Timer > 0.3f)
+                        {
+                            Timer *= 0.95f;
+                            audio.pitch = 1 + (1f - Timer);
+                        }
+                        if (score >= GameManager.instance.winScore)
+                        {
+                            Win();
+                        }
+
+                        break;
+                    case ActiveSide.right:
+
+                        prAnim.SetTrigger("Sad");
+                        //Fabric.EventManager.Instance.
+                        //Debug.Log("audioEvent: "+);
+                        audio.PlayOneShot(MissAudioEvent);
+                        allowInput = false;
+                        if (Timer < 1f)
+                        {
+                            Timer *= 1.05f;
+                            audio.pitch = 1 + (1f - Timer);
+                        }
+
+                        break;
+                }
             }
+            else if (Input.GetButtonDown(playerRight))
+            {
+
+                switch (sideActive)
+                {
+                    case ActiveSide.left:
+                        Timer *= 1.1f;
+                        //Debug.Log("UserPressed RIGHT");
+                        score--;
+                        bubAnim.SetInteger("BubbleSize", score);
+                        plAnim.SetTrigger("Sad");
+                        if (Timer < 1f)
+                        {
+                            Timer *= 1.05f;
+                            audio.pitch = 1 + (1f - Timer);
+                        }
+                        audio.PlayOneShot(MissAudioEvent);
+                        allowInput = false;
+                        break;
+                    case ActiveSide.right:
+                        //Debug.Log("UserPressed RIGHT");
+                        allowInput = false;
+                        score++;
+                        plungeAnim.SetTrigger("Plunge");
+                       
+                        bubAnim.SetInteger("BubbleSize", score);
+                        if (Timer > 0.3f)
+                        {
+                            Timer *= 0.95f;
+                            audio.pitch = 1 + (1f - Timer);
+                        }
+
+                        //scoreText.text = score.ToString();
+                        Timer *= 0.9f;
+                        if (score >= GameManager.instance.winScore)
+                        {
+                            Win();
+                        }
+                        break;
+                }
+            }
+
         }
+    }
+    void Win()
+    {
+        StopAllCoroutines();
+        plAnim.SetTrigger("Won");
+        prAnim.SetTrigger("Won");
+        audio.pitch = 1;
+        audio.PlayOneShot(winSound);
+        score = 0;
+        GameManager.instance.GameOver(gameObject.name);
+    }
 
-
+    public void Lost()
+    {
+        StopAllCoroutines();
+        plAnim.SetTrigger("Lost");
+        prAnim.SetTrigger("Lost");
+        audio.PlayOneShot(MissAudioEvent);
+        score = 0;
     }
 }
