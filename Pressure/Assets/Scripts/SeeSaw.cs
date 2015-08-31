@@ -24,10 +24,11 @@ public class SeeSaw : MonoBehaviour {
     public GameObject bubble, playerLeftsprite, playerRightSprite, plunger;
     private Animator bubAnim, plAnim, prAnim, plungeAnim;
     private int bubbleState = 0;
-
+    private string plAudioShoutEvent, prAudioShoutEvent, plMissAudioEvent, prMissAudioEvent;
 
     void Start()
     {
+        Fabric.EventManager.Instance.PostEvent("p1LShout");
         bubAnim = bubble.GetComponent<Animator>();
         plAnim = playerLeftsprite.GetComponent<Animator>();
         prAnim = playerRightSprite.GetComponent<Animator>();
@@ -38,11 +39,19 @@ public class SeeSaw : MonoBehaviour {
                 Debug.Log("player1Set");
                 playerLeft = "p1Left";
                 playerRight = "p1Right";
+                plAudioShoutEvent = "p1LShout";
+                prAudioShoutEvent = "p1RShout";
+                plMissAudioEvent = "p1LMiss";
+                prMissAudioEvent = "p1RMiss";
                 break;
             case Player.P2:
                 Debug.Log("player2Set");
                 playerLeft = "p2Left";
                 playerRight = "p2Right";
+                plAudioShoutEvent = "p2LShout";
+                prAudioShoutEvent = "p2RShout";
+                plMissAudioEvent = "p2LMiss";
+                prMissAudioEvent = "p2RMiss";
                 break;
         }
 
@@ -59,7 +68,7 @@ public class SeeSaw : MonoBehaviour {
     /// <returns></returns>
     IEnumerator SwitchTimer()
     {
-        Debug.Log("timer"+Timer);
+        //Debug.Log("timer"+Timer);
         yield return new WaitForSeconds(Timer);
         switch (sideActive)
         {
@@ -67,7 +76,9 @@ public class SeeSaw : MonoBehaviour {
                 sideActive=ActiveSide.right;
                 plAnim.SetTrigger("Normal");
                 prAnim.SetTrigger("Shout");
-                Debug.Log("RIGHT");
+                Fabric.EventManager.Instance.PostEvent(plAudioShoutEvent, Fabric.EventAction.PlaySound, null, gameObject);
+                Debug.Log("audioEvent: " + plAudioShoutEvent);
+               // Debug.Log("RIGHT");
                // whichButton.text = "R";
                 allowInput = true;
                 break;
@@ -75,7 +86,9 @@ public class SeeSaw : MonoBehaviour {
                 sideActive= ActiveSide.left;
                 plAnim.SetTrigger("Shout");
                 prAnim.SetTrigger("Normal");
-                Debug.Log("LEFT");
+                Fabric.EventManager.Instance.PostEvent(prAudioShoutEvent, Fabric.EventAction.PlaySound, null, gameObject);
+                Debug.Log("audioEvent: " + prAudioShoutEvent);
+               // Debug.Log("LEFT");
                // whichButton.text = "L";
                 allowInput = true;
                 break;
@@ -112,17 +125,20 @@ public class SeeSaw : MonoBehaviour {
             switch (sideActive)
             {
                 case ActiveSide.left:
-                    Debug.Log("UserPressed LEFT");
+                    
                     allowInput = false;
                     score++;
-                    bubAnim.SetInteger("BubbleSize",score);
+                    bubAnim.SetInteger("BubbleSize",score); 
                     plungeAnim.SetTrigger("Plunge");
                     //scoreText.text = score.ToString();
                     Timer *= 0.9f;
                     break;
                 case ActiveSide.right:
-                    Debug.Log("UserPressed LEFT");
+                   
                     prAnim.SetTrigger("Sad");
+                    Fabric.EventManager.Instance.PostEvent(prMissAudioEvent, Fabric.EventAction.PlaySound, null, gameObject);
+                    //Fabric.EventManager.Instance.
+                    Debug.Log("audioEvent: "+prMissAudioEvent);
                     allowInput = false;
                     Timer *= 1.1f;
                     break;
@@ -135,13 +151,14 @@ public class SeeSaw : MonoBehaviour {
             {
                 case ActiveSide.left:
                     Timer *= 1.1f;
-                    Debug.Log("UserPressed RIGHT");
+                    //Debug.Log("UserPressed RIGHT");
                     score--;
                     plAnim.SetTrigger("Sad");
+                    Fabric.EventManager.Instance.PostEvent(plMissAudioEvent, Fabric.EventAction.PlaySound, null, gameObject);
                     allowInput = false;
                     break;
                 case ActiveSide.right:
-                    Debug.Log("UserPressed RIGHT");
+                    //Debug.Log("UserPressed RIGHT");
                     allowInput = false;
                     score++;
                     plungeAnim.SetTrigger("Plunge");
